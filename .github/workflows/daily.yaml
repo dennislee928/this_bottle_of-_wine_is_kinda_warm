@@ -1,0 +1,47 @@
+name: Hourly Job
+
+on:
+  schedule:
+    # This cron expression runs the workflow every hour
+    - cron: "0 * * * *"
+
+jobs:
+  run-hourly-task:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt found"
+          fi
+
+      - name: Verify script exists
+        run: |
+          if [ ! -f your_script.py ]; then
+            echo "Error: your_script.py not found"
+            exit 1
+          fi
+
+      - name: Run Script
+        run: |
+          python your_script.py
+        continue-on-error: false
+
+      - name: Report job status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'failure' ]; then
+            echo "Job failed"
+            exit 1
+          fi
